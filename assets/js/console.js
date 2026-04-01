@@ -459,6 +459,7 @@ function renderActionUI() {
     case 'TOLL': {
       const t = state.tiles[act.tileId];
       const ownerP = state.players.find(x => x.id === t.owner);
+      const shortfall = act.toll - p.money;
       html += `
         <div class="action-card toll">
           <div class="action-title">💸 남의 땅 — 통행료!</div>
@@ -468,8 +469,13 @@ function renderActionUI() {
               <span>통행료</span><strong style="color:#ff2b55;font-size:20px;">${act.toll.toLocaleString()}P</strong>
             </div>
             <div class="action-row">
-              <span>지불 후 잔액</span><strong>${(p.money - act.toll).toLocaleString()}P</strong>
+              <span>보유 금액</span><strong>${p.money.toLocaleString()}P</strong>
             </div>
+            ${shortfall > 0 ? `<div class="action-row" style="background:rgba(255,43,85,.15);padding:6px;border-radius:6px;margin-top:4px;">
+              <span style="color:#ff2b55;font-weight:900;">⚠ 부족 금액</span><strong style="color:#ff2b55;font-size:18px;">${shortfall.toLocaleString()}P</strong>
+            </div>` : `<div class="action-row">
+              <span>지불 후 잔액</span><strong>${(p.money - act.toll).toLocaleString()}P</strong>
+            </div>`}
           </div>
           <div class="action-btns">
             <button class="action-btn action-btn-danger" onclick="actToll()">💸 통행료 지불</button>
@@ -481,6 +487,8 @@ function renderActionUI() {
       const t = state.tiles[act.tileId];
       const ownerP = state.players.find(x => x.id === t.owner);
       const takeoverTotal = act.takeoverCost || (act.toll + t.price);
+      const tollShort = act.toll - p.money;
+      const takeoverShort = takeoverTotal - p.money;
       html += `
         <div class="action-card toll">
           <div class="action-title">💸 남의 땅 — 통행료 또는 인수!</div>
@@ -490,6 +498,12 @@ function renderActionUI() {
               <span>통행료</span><strong style="color:#ff2b55;">${act.toll.toLocaleString()}P</strong>
             </div>
             <div class="action-row">
+              <span>보유 금액</span><strong>${p.money.toLocaleString()}P</strong>
+            </div>
+            ${tollShort > 0 ? `<div class="action-row" style="background:rgba(255,43,85,.15);padding:6px;border-radius:6px;margin-top:4px;">
+              <span style="color:#ff2b55;font-weight:900;">⚠ 통행료 부족</span><strong style="color:#ff2b55;font-size:18px;">${tollShort.toLocaleString()}P</strong>
+            </div>` : ''}
+            <div class="action-row" style="margin-top:4px;">
               <span>인수 (통행료+땅값)</span><strong style="color:#cc44ff;">${takeoverTotal.toLocaleString()}P</strong> <span class="text-sm text-muted">(건물 1단계↓)</span>
             </div>
           </div>

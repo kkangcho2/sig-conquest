@@ -380,9 +380,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (act.type === 'BUY') {
         const t = state.tiles[act.tileId];
+        const buyShort = t.price - p.money;
         html += `<div class="popup-title">🏠 ${t.name}</div>`;
         html += `<div style="font-size:40px;color:#ffd700;font-weight:900;margin:12px 0;">${t.price.toLocaleString()}P</div>`;
-        html += `<div class="popup-text">구매 대기중...</div>`;
+        html += `<div class="popup-text">보유: ${p.money.toLocaleString()}P</div>`;
+        if (buyShort > 0) {
+          html += `<div style="font-size:28px;color:#ff2b55;font-weight:900;margin:6px 0;background:rgba(255,43,85,.2);padding:6px 14px;border-radius:10px;">⚠ ${buyShort.toLocaleString()}P 부족!</div>`;
+        } else {
+          html += `<div class="popup-text">구매 대기중...</div>`;
+        }
       } else if (act.type === 'UPGRADE') {
         const t = state.tiles[act.tileId];
         const nextBld = CFG.BUILDING[t.level + 1];
@@ -392,11 +398,17 @@ document.addEventListener('DOMContentLoaded', () => {
       } else if (act.type === 'TOLL' || act.type === 'TOLL_OR_BUY') {
         const t = state.tiles[act.tileId];
         const ownerP = state.players.find(x => x.id === t.owner);
+        const toll = act.toll || 0;
+        const shortfall = toll - p.money;
         html += `<div class="popup-title">💸 ${t.name}</div>`;
         html += `<div class="popup-text">소유자: <span style="color:${ownerP?.color||'#fff'};">${t.ownerName}</span></div>`;
-        html += `<div style="font-size:42px;color:#ff2b55;font-weight:900;margin:10px 0;">통행료 ${(act.toll||0).toLocaleString()}P</div>`;
+        html += `<div style="font-size:42px;color:#ff2b55;font-weight:900;margin:10px 0;">통행료 ${toll.toLocaleString()}P</div>`;
+        html += `<div class="popup-text">보유: ${p.money.toLocaleString()}P</div>`;
+        if (shortfall > 0) {
+          html += `<div style="font-size:32px;color:#ff2b55;font-weight:900;margin:8px 0;background:rgba(255,43,85,.2);padding:8px 16px;border-radius:10px;">⚠ ${shortfall.toLocaleString()}P 부족!</div>`;
+        }
         if (act.type === 'TOLL_OR_BUY') {
-          html += `<div style="font-size:28px;color:#cc44ff;font-weight:800;">인수: ${(act.takeoverCost||0).toLocaleString()}P</div>`;
+          html += `<div style="font-size:24px;color:#cc44ff;font-weight:800;margin-top:6px;">인수: ${(act.takeoverCost||0).toLocaleString()}P</div>`;
         }
       } else if (act.type === 'TOLL_SHIELD') {
         html += `<div class="popup-title">🛡 방어막 보유!</div>`;
