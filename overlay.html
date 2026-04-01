@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <title>SIG CONQUEST — 방송 오버레이</title>
+  <meta name="viewport" content="width=1920"/>
+  <link rel="stylesheet" href="assets/css/common.css"/>
+  <link rel="stylesheet" href="assets/css/overlay.css"/>
+</head>
+<body class="overlay-body">
+<div id="overlay">
+
+  <!-- 보드 (12x8 그리드) -->
+  <div class="board" id="board"></div>
+
+  <!-- 중앙 패널 (크로마키 녹색 배경 + 정보 오버레이) -->
+  <div class="center" id="centerPanel">
+    <div class="center-title">
+      <span class="title-icon">★</span> SIG CONQUEST <span class="title-icon">★</span>
+      <div class="center-round" id="roundInfo">R1</div>
+    </div>
+
+    <!-- 현재 턴 -->
+    <div class="turn-info" id="turnInfo"></div>
+
+    <!-- 플레이어 카드 -->
+    <div class="player-cards" id="playerCards"></div>
+
+    <!-- 알림 로그 -->
+    <div class="notif-log" id="notifLog"></div>
+  </div>
+
+  <!-- 주사위 (보드 위 오버레이) -->
+  <div class="dice-area" id="diceArea" style="display:none;">
+    <div class="dice-box" id="dice1">0</div>
+    <div class="dice-plus">+</div>
+    <div class="dice-box" id="dice2">0</div>
+    <div class="dice-eq">=</div>
+    <div class="dice-sum" id="diceSum">0</div>
+    <div class="dice-double" id="diceDouble" style="display:none;">DOUBLE!</div>
+  </div>
+
+  <!-- 팝업 영역 -->
+  <div class="popup-area" id="popupArea" style="display:none;"></div>
+
+  <!-- 이동 중 표시 -->
+  <div class="move-overlay" id="moveOverlay" style="display:none;">
+    <div class="move-text" id="moveText">이동 중...</div>
+  </div>
+
+  <!-- 게임 설명 팝업 -->
+  <div class="rules-overlay" id="rulesOverlay" style="display:none;">
+    <div class="rules-box">
+      <div class="rules-header">
+        <span>📖 게임 설명</span>
+      </div>
+      <div class="rules-tabs" id="rulesTabs"></div>
+      <div class="rules-content" id="rulesContent"></div>
+    </div>
+  </div>
+
+  <!-- 스포트라이트 -->
+  <div class="spotlight-overlay" id="spotlightOverlay" style="display:none;">
+    <div class="spotlight-card" id="spotlightCard"></div>
+    <div class="spotlight-dots" id="spotlightDots"></div>
+  </div>
+
+</div>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/storage.js"></script>
+<script src="assets/js/engine.js"></script>
+<script src="assets/js/overlay.js"></script>
+</body>
+</html>

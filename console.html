@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <title>SIG CONQUEST — 관리 콘솔</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="assets/css/common.css"/>
+  <link rel="stylesheet" href="assets/css/console.css"/>
+</head>
+<body class="console-body">
+<div class="consoleWrap">
+
+  <!-- 헤더 -->
+  <div class="consoleHeader">
+    <div>
+      <div class="consoleTitle">SIG CONQUEST — 관리 콘솔</div>
+      <div class="consoleSub">V40 · 36칸 · 최대15인 · 주사위2개 · 스텝 위자드</div>
+    </div>
+    <div class="row gap-4">
+      <button class="btn" id="undoBtn">↩ 되돌리기</button>
+      <button class="btn" id="saveBtn">💾 저장</button>
+      <button class="btn danger" id="resetBtn">RESET</button>
+    </div>
+  </div>
+
+  <!-- 턴 순서 바 -->
+  <div class="turn-order-bar" id="turnOrderBar"></div>
+
+  <!-- ZONE A: 스텝 위자드 (4단계) -->
+  <div class="step-wizard" id="stepWizard">
+
+    <!-- STEP 1: 주사위 -->
+    <div class="step-panel" id="stepDice">
+      <div class="step-header">
+        <div class="step-num">1</div>
+        <span>🎲 주사위</span>
+      </div>
+      <div class="step-body" id="stepDiceBody">
+        <button class="btn-big primary" id="rollDiceBtn" style="width:100%;">🎲 주사위 굴리기</button>
+        <div class="dice-manual">
+          <div class="dice-col">
+            <div class="dice-col-label">🎲①</div>
+            <div class="dice-num-grid" id="diceGrid1"></div>
+          </div>
+          <div class="dice-col">
+            <div class="dice-col-label">🎲②</div>
+            <div class="dice-num-grid" id="diceGrid2"></div>
+          </div>
+        </div>
+        <div class="dice-preview" id="dicePreview"></div>
+      </div>
+    </div>
+
+    <!-- STEP 2: 이동 -->
+    <div class="step-panel" id="stepMove">
+      <div class="step-header">
+        <div class="step-num">2</div>
+        <span>🚶 이동</span>
+      </div>
+      <div class="step-body" id="stepMoveBody">
+        <div id="moveInfo" class="text-muted" style="margin-bottom:10px;">주사위를 먼저 굴리세요</div>
+        <button class="btn-big primary" id="moveBtn" style="width:100%;" disabled>🚶 이동하기</button>
+      </div>
+    </div>
+
+    <!-- STEP 3: 후원 체크 -->
+    <div class="step-panel" id="stepDonate">
+      <div class="step-header">
+        <div class="step-num">3</div>
+        <span>💰 후원 체크</span>
+      </div>
+      <div class="step-body" id="stepDonateBody">
+        <div class="text-muted">이동 완료 후 표시됩니다</div>
+      </div>
+    </div>
+
+    <!-- STEP 4: 선택 (구매/통행료/이벤트 등) -->
+    <div class="step-panel" id="stepAction">
+      <div class="step-header">
+        <div class="step-num">4</div>
+        <span>⚡ 선택</span>
+      </div>
+      <div class="step-body" id="stepActionBody">
+        <div class="text-muted">후원 체크 후 표시됩니다</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 턴 종료 -->
+  <div class="turn-end-area" id="turnEndArea">
+    <button class="btn-huge warning" id="endTurnBtn" disabled>▶ 턴 종료 / 다음 턴</button>
+  </div>
+
+  <!-- ZONE B: 자산 현황 -->
+  <div class="panel">
+    <div class="panelTitle">📊 자산 현황</div>
+    <div class="asset-cards" id="assetCards"></div>
+  </div>
+
+  <!-- ZONE C: 관리 도구 (아코디언) -->
+
+  <!-- 플레이어 관리 -->
+  <div class="accordion" id="accPlayer">
+    <div class="accordion-header" onclick="toggleAccordion('accPlayer')">
+      👤 플레이어 관리 <span class="accordion-arrow">▸</span>
+    </div>
+    <div class="accordion-body"><div class="accordion-content">
+      <div class="player-tabs" id="playerTabs"></div>
+      <div id="playerEditor"></div>
+    </div></div>
+  </div>
+
+  <!-- 땅 관리 -->
+  <div class="accordion" id="accTile">
+    <div class="accordion-header" onclick="toggleAccordion('accTile')">
+      🏠 땅 관리 <span class="accordion-arrow">▸</span>
+    </div>
+    <div class="accordion-body"><div class="accordion-content">
+      <div id="minimap" style="max-height:400px;overflow-y:auto;"></div>
+      <div id="tileEditor" style="margin-top:12px;"></div>
+    </div></div>
+  </div>
+
+  <!-- 이벤트/설정 -->
+  <div class="accordion" id="accSettings">
+    <div class="accordion-header" onclick="toggleAccordion('accSettings')">
+      ⚙ 게임 설정 <span class="accordion-arrow">▸</span>
+    </div>
+    <div class="accordion-body"><div class="accordion-content">
+      <div class="row wrap gap-12">
+        <label>시작 금액: <input type="number" id="cfgMoney" value="50000" style="width:120px;"/></label>
+        <button class="btn" id="setMoney3">3만</button>
+        <button class="btn" id="setMoney5">5만</button>
+        <button class="btn" id="setMoney10">10만</button>
+        <button class="btn" id="setMoney20">20만</button>
+        <button class="btn primary" id="applyMoneyBtn">전원 적용</button>
+      </div>
+      <div class="row wrap gap-12 mt-12">
+        <label>출발 급여: <input type="number" id="cfgSalary" value="3000" style="width:100px;"/></label>
+        <label>보석금: <input type="number" id="cfgBail" value="5000" style="width:100px;"/></label>
+        <button class="btn primary" id="applyCfgBtn">설정 적용</button>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- SIG 이미지 -->
+  <div class="accordion" id="accSig">
+    <div class="accordion-header" onclick="toggleAccordion('accSig')">
+      🖼 시그 이미지 관리 <span class="accordion-arrow">▸</span>
+    </div>
+    <div class="accordion-body"><div class="accordion-content">
+      <div class="row wrap gap-4" style="margin-bottom:12px;">
+        <button class="btn primary" id="sigAssignBtn">🔀 자동 배정</button>
+        <button class="btn danger" id="sigClearBtn">배정 해제</button>
+      </div>
+      <div class="sig-upload-zone" id="sigUploadZone">
+        <div>클릭 또는 드래그하여 시그 이미지 추가</div>
+        <div class="text-sm text-muted">파일명 예: 22200_이름.png</div>
+        <input type="file" id="sigFileInput" multiple accept="image/*" style="display:none;"/>
+      </div>
+      <div class="sig-grid" id="sigGrid"></div>
+    </div></div>
+  </div>
+
+  <!-- 로그 -->
+  <div class="accordion" id="accLog">
+    <div class="accordion-header" onclick="toggleAccordion('accLog')">
+      📝 로그 <span class="accordion-arrow">▸</span>
+    </div>
+    <div class="accordion-body"><div class="accordion-content">
+      <div class="console-log" id="logBox"></div>
+    </div></div>
+  </div>
+
+</div>
+
+<!-- 하단 고정바 -->
+<div class="sticky-footer">
+  <div class="footer-left">
+    <button class="btn" id="footUndo">↩</button>
+    <button class="btn" id="footSave">💾</button>
+    <div class="rules-dropdown" id="rulesDropdown">
+      <button class="btn" id="footRules">📖 게임설명</button>
+      <div class="rules-menu" id="rulesMenu"></div>
+    </div>
+    <button class="btn" id="footSpotlight">📍 위치확인</button>
+  </div>
+  <div class="footer-right" id="footerStatus">로딩중...</div>
+</div>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/storage.js"></script>
+<script src="assets/js/engine.js"></script>
+<script src="assets/js/console.js"></script>
+</body>
+</html>
