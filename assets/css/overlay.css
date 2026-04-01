@@ -2,16 +2,24 @@
     방송 오버레이 (1920×1080)
     ──────────────────────────────────────── */
 
+html{
+  width:1920px;height:1080px;
+  margin:0;padding:0;
+  overflow:hidden;
+}
+
 body.overlay-body{
   width:1920px;height:1080px;
-  margin:0;overflow:hidden;
+  margin:0;padding:0;
+  overflow:hidden;
   background:transparent;
 }
 
 #overlay{
-  position:relative;
+  position:absolute;
+  top:0;left:0;
   width:1920px;height:1080px;
-  background:#050810;
+  background:transparent;
   color:white;
   overflow:hidden;
 }
@@ -233,7 +241,7 @@ body.overlay-body{
 
 /* 턴 정보 → 좌측 크로마키 영역 (상단 행 아래) */
 .turn-info{
-  position:fixed;
+  position:absolute;
   top:135px;left:150px;
   font-size:16px;
   font-weight:800;
@@ -247,7 +255,7 @@ body.overlay-body{
 
 /* 플레이어 카드 → 턴정보 아래 간격 띄움 */
 .player-cards{
-  position:fixed;
+  position:absolute;
   top:190px;left:150px;
   display:flex;
   flex-wrap:wrap;
