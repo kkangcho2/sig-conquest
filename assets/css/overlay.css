@@ -239,10 +239,10 @@ body.overlay-body{
 .title-icon{ display:none; }
 .center-round{ display:none; }
 
-/* 턴 정보 → 좌측 하단 (하단 셀 행 바로 위) */
+/* 턴 정보 → 좌측 중간 */
 .turn-info{
   position:absolute;
-  bottom:140px;left:150px;
+  bottom:280px;left:150px;
   font-size:16px;
   font-weight:800;
   padding:10px 18px;
@@ -256,7 +256,7 @@ body.overlay-body{
 /* 플레이어 카드 → 턴정보 위에 */
 .player-cards{
   position:absolute;
-  bottom:185px;left:150px;
+  bottom:325px;left:150px;
   display:flex;
   flex-wrap:wrap;
   gap:6px;
