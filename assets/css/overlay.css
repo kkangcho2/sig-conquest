@@ -239,28 +239,26 @@ body.overlay-body{
 .title-icon{ display:none; }
 .center-round{ display:none; }
 
-/* 턴 정보 → 좌측 하단 (좌측 셀 오른쪽, 하단 셀 위) */
+/* 턴 정보 → 좌측 하단 모서리 */
 .turn-info{
   position:absolute;
-  bottom:135px;left:155px;
-  font-size:16px;
+  bottom:128px;left:100px;
+  font-size:15px;
   font-weight:800;
-  padding:10px 18px;
-  border-radius:10px;
+  padding:8px 14px;
+  border-radius:8px;
   background:rgba(0,0,0,.88);
   z-index:20;
   pointer-events:none;
-  width:450px;
 }
 
 /* 플레이어 카드 → 턴정보 바로 위 */
 .player-cards{
   position:absolute;
-  bottom:180px;left:155px;
-  display:flex;
-  flex-wrap:wrap;
-  gap:6px;
-  width:450px;
+  bottom:168px;left:100px;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:4px;
   z-index:20;
   pointer-events:none;
 }
@@ -382,12 +380,11 @@ body.overlay-body{
 .p-card{
   background:rgba(10,14,30,.92);
   border:2px solid rgba(255,255,255,.15);
-  border-radius:10px;
-  padding:8px 10px;
-  min-width:120px;
-  flex:1;
+  border-radius:8px;
+  padding:6px 8px;
+  width:110px;
   text-align:center;
-  font-size:13px;
+  font-size:12px;
   transition:all .3s;
 }
 
