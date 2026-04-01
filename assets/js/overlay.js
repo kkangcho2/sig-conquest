@@ -453,6 +453,12 @@ document.addEventListener('DOMContentLoaded', () => {
         html += `<div class="popup-text">통행료 면제 가능</div>`;
       } else if (act.type === 'EVENT_DRAW') {
         html += `<div class="popup-title" style="font-size:42px;">🎪 이벤트!</div>`;
+      } else if (act.type === 'SELL_TILES') {
+        const owned = SigEngine.getOwnedTiles(state, p.id);
+        const totalAsset = owned.reduce((s,t) => s + SigEngine.getTileValue(t), 0);
+        html += `<div class="popup-title" style="color:#ff2b55;">⚠ 자금 부족!</div>`;
+        html += `<div style="font-size:32px;color:#ff2b55;font-weight:900;margin:8px 0;">${p.money.toLocaleString()}P</div>`;
+        html += `<div class="popup-text">땅 매각 중... (${owned.length}칸 / ${totalAsset.toLocaleString()}P)</div>`;
       } else {
         html += `<div class="popup-title">${state.pendingMessage}</div>`;
       }

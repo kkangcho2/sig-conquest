@@ -620,6 +620,43 @@ function renderActionUI() {
           </div>
         </div>`;
       break;
+
+    case 'SELL_TILES': {
+      const owned = SigEngine.getOwnedTiles(state, p.id);
+      const totalAsset = owned.reduce((s,t) => s + SigEngine.getTileValue(t), 0);
+      html += `
+        <div class="action-card" style="border-color:rgba(255,43,85,.6);">
+          <div class="action-title" style="color:#ff2b55;">⚠ 자금 부족! 땅을 매각하세요</div>
+          <div class="action-detail">
+            <div class="action-row">
+              <span>현재 잔액</span><strong style="color:#ff2b55;">${p.money.toLocaleString()}P</strong>
+            </div>
+            <div class="action-row">
+              <span>보유 부동산</span><strong>${totalAsset.toLocaleString()}P (${owned.length}칸)</strong>
+            </div>
+          </div>
+          <div style="margin-top:10px;font-weight:700;margin-bottom:6px;">매각할 땅 선택:</div>
+          <div style="display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto;">`;
+      owned.forEach(t => {
+        const val = SigEngine.getTileValue(t);
+        const bld = CFG.BUILDING[t.level];
+        html += `<button class="action-btn" style="text-align:left;padding:10px 14px;justify-content:space-between;" onclick="actSellTile(${t.id})">
+          <span>${bld.icon} [${t.id}] ${t.name} ${t.level > 0 ? '('+bld.name+')' : ''}</span>
+          <strong style="color:#ffd700;">+${val.toLocaleString()}P</strong>
+        </button>`;
+      });
+      html += `</div>`;
+      // 잔액이 0 이상이면 매각 완료 가능
+      if (p.money >= 0) {
+        html += `<div class="action-btns" style="margin-top:10px;">
+          <button class="action-btn action-btn-yes" onclick="actDoneSelling()" style="width:100%;">✅ 매각 완료 — 진행하기</button>
+        </div>`;
+      } else {
+        html += `<div style="margin-top:10px;color:#ff2b55;font-weight:800;text-align:center;">잔액이 0P 이상이 되어야 진행할 수 있습니다</div>`;
+      }
+      html += `</div>`;
+      break;
+    }
   }
 
   body.innerHTML = html;
@@ -680,6 +717,28 @@ window.actTollFromShield = () => {
 window.actTakeoverFromShield = () => {
   SigEngine.takeover(state);
   afterAction();
+};
+
+// 땅 매각
+window.actSellTile = (tileId) => {
+  SigEngine.sellTile(state, tileId);
+  // 매각 후 아직 잔액이 부족하면 매각 계속, 충분하면 매각 완료 가능
+  const owned = SigEngine.getOwnedTiles(state, cp().id);
+  if (cp().money < 0 && owned.length === 0) {
+    // 땅 다 팔았는데 아직 부족 → 파산
+    state.pendingAction = null;
+    SigEngine.checkBankruptcy(state);
+  }
+  // 매각 UI 갱신 (pendingAction은 SELL_TILES 유지)
+  backupR();
+};
+
+// 매각 완료 → 원래 진행
+window.actDoneSelling = () => {
+  state.pendingAction = null;
+  state.pendingMessage = '';
+  state._step = 'done';
+  backupR();
 };
 
 /* ═══ 이동 애니메이션 ═══════════════════ */

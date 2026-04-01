@@ -642,10 +642,41 @@ const SigEngine = {
     }
   },
 
+  /* ═══ 땅 매각 ══════════════════════════ */
+  sellTile(state, tileId) {
+    const p = this.currentPlayer(state);
+    const tile = state.tiles[tileId];
+    if (!tile || tile.owner !== p.id) return 0;
+    const value = this.getTileValue(tile);
+    p.money += value;
+    p.totalEarned += value;
+    const name = tile.name;
+    tile.owner = null;
+    tile.ownerName = '';
+    tile.level = 0;
+    tile.doubled = false;
+    state.eventMsg = `💰 ${p.name} '${name}' 매각 +${value.toLocaleString()}P`;
+    this.addLog(state, state.eventMsg);
+    return value;
+  },
+
+  getOwnedTiles(state, playerId) {
+    return state.tiles.filter(t => t.owner === playerId && t.type === 'SIG');
+  },
+
   /* ═══ 파산 / 게임 종료 ════════════════ */
   checkBankruptcy(state) {
     state.players.forEach(p => {
       if (!p.bankrupt && p.money < 0) {
+        // 보유 땅이 있으면 매각 기회 (즉시 파산 아님)
+        const owned = this.getOwnedTiles(state, p.id);
+        if (owned.length > 0) {
+          // 매각 필요 — pendingAction으로 처리
+          state.pendingAction = { type:'SELL_TILES', reason:'bankrupt_prevent' };
+          state.pendingMessage = `${p.name} 자금 부족! 땅을 매각하세요.`;
+          return; // 파산 보류
+        }
+        // 땅 없으면 파산
         p.bankrupt = true;
         state.tiles.forEach(t => {
           if (t.owner === p.id) {
