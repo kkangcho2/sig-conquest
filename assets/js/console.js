@@ -307,7 +307,7 @@ window.jailBail = function() {
   backupR();
 };
 
-/* ── 후원 체크 UI (여러번 가능 + 되돌리기) ── */
+/* ── 후원 체크 UI (여러번 가능 + 되돌리기 + 부족금액 미리보기) ── */
 function renderDonateUI() {
   const body = $('stepDonateBody');
   const p = cp();
@@ -316,6 +316,48 @@ function renderDonateUI() {
   const donateCount = state._donateCount || 0;
 
   if (tile.type === 'SIG') {
+    // 다음 단계 미리보기: 이 칸에서 뭐가 일어나는지 + 부족 금액
+    let previewHtml = '';
+    if (!tile.owner) {
+      // 빈 땅 → 구매 가능
+      const shortfall = tile.price - p.money;
+      previewHtml = `
+        <div style="border-top:1px solid rgba(255,255,255,.1);padding-top:8px;margin-top:8px;">
+          <div class="action-row"><span>📌 구매 가격</span><strong style="color:#ffd700;">${tile.price.toLocaleString()}P</strong></div>
+          ${shortfall > 0 ? `<div class="action-row" style="background:rgba(255,43,85,.15);padding:6px;border-radius:6px;margin-top:4px;">
+            <span style="color:#ff2b55;font-weight:900;">⚠ 구매 부족</span><strong style="color:#ff2b55;font-size:18px;">${shortfall.toLocaleString()}P</strong>
+          </div>` : `<div class="action-row"><span>구매 후 잔액</span><strong style="color:#55ccff;">${(p.money - tile.price).toLocaleString()}P</strong></div>`}
+        </div>`;
+    } else if (tile.owner === p.id) {
+      // 내 땅 → 업그레이드
+      if (tile.level < 3) {
+        const cost = SigEngine.getUpgradeCost(tile);
+        const shortfall = cost - p.money;
+        previewHtml = `
+          <div style="border-top:1px solid rgba(255,255,255,.1);padding-top:8px;margin-top:8px;">
+            <div class="action-row"><span>📌 업그레이드 비용</span><strong style="color:#ffd700;">${cost.toLocaleString()}P</strong></div>
+            ${shortfall > 0 ? `<div class="action-row" style="background:rgba(255,43,85,.15);padding:6px;border-radius:6px;margin-top:4px;">
+              <span style="color:#ff2b55;font-weight:900;">⚠ 업그레이드 부족</span><strong style="color:#ff2b55;font-size:18px;">${shortfall.toLocaleString()}P</strong>
+            </div>` : ''}
+          </div>`;
+      } else {
+        previewHtml = `<div style="border-top:1px solid rgba(255,255,255,.1);padding-top:8px;margin-top:8px;color:var(--text-muted);">📌 최대 레벨 (업그레이드 불가)</div>`;
+      }
+    } else {
+      // 남의 땅 → 통행료
+      const toll = SigEngine.calcToll(state, tile);
+      const shortfall = toll - p.money;
+      const ownerP = state.players.find(x => x.id === tile.owner);
+      previewHtml = `
+        <div style="border-top:1px solid rgba(255,255,255,.1);padding-top:8px;margin-top:8px;">
+          <div class="action-row"><span>📌 통행료 → <span style="color:${ownerP?.color||'#fff'};">${tile.ownerName}</span></span><strong style="color:#ff2b55;font-size:18px;">${toll.toLocaleString()}P</strong></div>
+          <div class="action-row"><span>보유 금액</span><strong>${p.money.toLocaleString()}P</strong></div>
+          ${shortfall > 0 ? `<div class="action-row" style="background:rgba(255,43,85,.2);padding:8px;border-radius:8px;margin-top:4px;">
+            <span style="color:#ff2b55;font-weight:900;font-size:16px;">⚠ 부족 금액</span><strong style="color:#ff2b55;font-size:22px;">${shortfall.toLocaleString()}P</strong>
+          </div>` : `<div class="action-row"><span>지불 후 잔액</span><strong>${(p.money - toll).toLocaleString()}P</strong></div>`}
+        </div>`;
+    }
+
     body.innerHTML = `
       <div class="action-card" style="border-color:rgba(255,215,0,.5);">
         <div class="action-title">💰 후원 체크 — ${tile.name}</div>
@@ -333,6 +375,7 @@ function renderDonateUI() {
             <span>누적 후원</span>
             <strong style="color:#ffd700;">+${totalDonated.toLocaleString()}P (${donateCount}회)</strong>
           </div>` : ''}
+          ${previewHtml}
         </div>
         <div class="action-btns" style="flex-direction:column;gap:8px;">
           <button class="action-btn action-btn-event" onclick="doDonate()" style="font-size:18px;">

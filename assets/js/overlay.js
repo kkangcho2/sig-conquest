@@ -372,6 +372,44 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    // 후원 체크 단계 — 부족 금액 미리 표시
+    if (state._step === 'donate' && state._landingPending) {
+      const p = SigEngine.currentPlayer(state);
+      const tile = state.tiles[p.position];
+      if (tile.type === 'SIG') {
+        let html = `<div class="popup-player" style="color:${p.color};">${p.name}</div>`;
+        if (!tile.owner) {
+          const short = tile.price - p.money;
+          html += `<div class="popup-title">🏠 ${tile.name}</div>`;
+          html += `<div style="font-size:40px;color:#ffd700;font-weight:900;margin:10px 0;">${tile.price.toLocaleString()}P</div>`;
+          html += `<div class="popup-text">보유: ${p.money.toLocaleString()}P</div>`;
+          if (short > 0) html += `<div style="font-size:32px;color:#ff2b55;font-weight:900;margin:8px 0;background:rgba(255,43,85,.2);padding:8px 16px;border-radius:10px;">⚠ ${short.toLocaleString()}P 부족!</div>`;
+        } else if (tile.owner !== p.id) {
+          const toll = SigEngine.calcToll(state, tile);
+          const short = toll - p.money;
+          const ownerP = state.players.find(x => x.id === tile.owner);
+          html += `<div class="popup-title">💸 ${tile.name}</div>`;
+          html += `<div class="popup-text">소유자: <span style="color:${ownerP?.color||'#fff'};">${tile.ownerName}</span></div>`;
+          html += `<div style="font-size:42px;color:#ff2b55;font-weight:900;margin:10px 0;">통행료 ${toll.toLocaleString()}P</div>`;
+          html += `<div class="popup-text">보유: ${p.money.toLocaleString()}P</div>`;
+          if (short > 0) html += `<div style="font-size:32px;color:#ff2b55;font-weight:900;margin:8px 0;background:rgba(255,43,85,.2);padding:8px 16px;border-radius:10px;">⚠ ${short.toLocaleString()}P 부족!</div>`;
+        } else if (tile.level < 3) {
+          const cost = SigEngine.getUpgradeCost(tile);
+          const short = cost - p.money;
+          html += `<div class="popup-title">⬆ ${tile.name}</div>`;
+          html += `<div style="font-size:36px;color:#ffd700;font-weight:900;margin:8px 0;">업그레이드 ${cost.toLocaleString()}P</div>`;
+          if (short > 0) html += `<div style="font-size:28px;color:#ff2b55;font-weight:900;margin:6px 0;background:rgba(255,43,85,.2);padding:6px 14px;border-radius:10px;">⚠ ${short.toLocaleString()}P 부족!</div>`;
+        }
+        const donated = state._donateAmount || 0;
+        if (donated > 0) html += `<div class="popup-text" style="color:#ffd700;margin-top:8px;">후원: +${donated.toLocaleString()}P</div>`;
+        area.style.display = 'block';
+        area.style.borderColor = p.color;
+        area.innerHTML = html;
+        clearTimeout(popupTimer);
+        return;
+      }
+    }
+
     // 대기 중인 액션 표시 (구매/통행료 선택 등)
     if (state.pendingAction && state.pendingMessage) {
       const p = SigEngine.currentPlayer(state);
