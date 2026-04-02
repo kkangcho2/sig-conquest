@@ -355,29 +355,7 @@ body.overlay-body{
   to{opacity:1;transform:scale(1.1);}
 }
 
-/* ── 현재 턴 ─────────────────────────── */
-
-.turn-info{
-  text-align:center;
-  font-size:16px;
-  font-weight:700;
-  margin:6px 0;
-  padding:6px;
-  border-radius:8px;
-  background:rgba(0,0,0,.3);
-}
-
-/* ── 플레이어 카드 ───────────────────── */
-
-.player-cards{
-  display:flex;
-  flex-wrap:wrap;
-  gap:6px;
-  justify-content:center;
-  margin:8px 0;
-  max-height:200px;
-  overflow-y:auto;
-}
+/* 턴정보/플레이어카드 — 위의 absolute 정의만 사용 (중복 제거) */
 
 .p-card{
   background:rgba(10,14,30,.92);
