@@ -616,8 +616,8 @@ body.overlay-body{
 
 .rules-box{
   position:absolute;
-  bottom:105px;
-  left:3px;
+  top:50%;left:148px;
+  transform:translateY(-50%);
   background:rgba(10,14,30,.7);
   border:2px solid rgba(0,234,255,.4);
   border-radius:12px;
