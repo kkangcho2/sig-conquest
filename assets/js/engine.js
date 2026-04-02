@@ -345,7 +345,8 @@ const SigEngine = {
         state.popup = { type:'event', title:'3칸 후진!', text:`[${newPos}] ${state.tiles[newPos].name}` };
         this.addLog(state, state.eventMsg);
         state.pendingAction = null; state.pendingMessage = '';
-        // 후진 도착지에서는 추가 랜딩 없음 (통행료/구매 발생 안 함)
+        // 후진 도착지에서 착지 효과 적용 (구매/통행료/이벤트)
+        this.applyLanding(state);
         break;
       }
 
@@ -449,10 +450,9 @@ const SigEngine = {
       const t = state.tiles[data.tileId];
       state.eventMsg = `${p.name} ✈ '${t.name}'으로 이동!`;
       this.addLog(state, state.eventMsg);
-      // 세계여행 도착지에서는 구매만 가능 (통행료 X)
-      if (t.type === 'SIG' && !t.owner && p.money >= t.price) {
-        state.pendingAction = { type:'BUY', tileId: t.id };
-        state.pendingMessage = `'${t.name}' 구매 (${t.price.toLocaleString()}P)?`;
+      // 세계여행 도착지 → 정상 착지 처리 (구매/업그레이드/통행료)
+      if (t.type === 'SIG') {
+        this._landSig(state, p, t);
         return;
       }
     }
