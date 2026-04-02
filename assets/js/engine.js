@@ -199,6 +199,7 @@ const SigEngine = {
   buyTile(state) {
     const p = this.currentPlayer(state);
     const tile = state.tiles[state.pendingAction.tileId];
+    if (p.money < tile.price) { state.pendingAction = null; return; } // 안전장치
     p.money -= tile.price;
     p.totalPaid += tile.price;
     tile.owner = p.id;
@@ -222,6 +223,7 @@ const SigEngine = {
     const p = this.currentPlayer(state);
     const tile = state.tiles[state.pendingAction.tileId];
     const cost = state.pendingAction.cost;
+    if (p.money < cost) { state.pendingAction = null; return; } // 안전장치
     p.money -= cost;
     p.totalPaid += cost;
     tile.level++;
@@ -319,7 +321,7 @@ const SigEngine = {
         state.eventMsg = `${evt.title}: 전원 ${evt.amount.toLocaleString()}P`;
         this.addLog(state, state.eventMsg);
         state.pendingAction = null; state.pendingMessage = '';
-        state.players.forEach(() => this.checkBankruptcy(state));
+        this.checkBankruptcy(state); // 1회만 호출 (내부에서 전원 체크)
         break;
 
       case 'GO_START':
@@ -666,26 +668,43 @@ const SigEngine = {
 
   /* ═══ 파산 / 게임 종료 ════════════════ */
   checkBankruptcy(state) {
+    const currentP = this.currentPlayer(state);
     state.players.forEach(p => {
       if (!p.bankrupt && p.money < 0) {
-        // 보유 땅이 있으면 매각 기회 (즉시 파산 아님)
         const owned = this.getOwnedTiles(state, p.id);
-        if (owned.length > 0) {
-          // 매각 필요 — pendingAction으로 처리
-          state.pendingAction = { type:'SELL_TILES', reason:'bankrupt_prevent' };
+
+        // 현재 턴 플레이어 → 매각 기회
+        if (p.id === currentP.id && owned.length > 0) {
+          state.pendingAction = { type:'SELL_TILES', reason:'bankrupt_prevent', playerId: p.id };
           state.pendingMessage = `${p.name} 자금 부족! 땅을 매각하세요.`;
           return; // 파산 보류
         }
-        // 땅 없으면 파산
-        p.bankrupt = true;
-        state.tiles.forEach(t => {
-          if (t.owner === p.id) {
+
+        // 비현재 플레이어 또는 땅 없음 → 땅 자동 매각 시도
+        if (owned.length > 0) {
+          // 비현재 플레이어는 자동으로 가장 비싼 땅부터 매각
+          const sorted = [...owned].sort((a,b) => this.getTileValue(b) - this.getTileValue(a));
+          for (const t of sorted) {
+            const val = this.getTileValue(t);
+            p.money += val; p.totalEarned += val;
+            this.addLog(state, `💰 ${p.name} '${t.name}' 자동 매각 +${val.toLocaleString()}P`);
             t.owner = null; t.ownerName = ''; t.level = 0; t.doubled = false;
+            if (p.money >= 0) break; // 충분하면 중단
           }
-        });
-        state.eventMsg = `💀 ${p.name} 파산!`;
-        state.popup = { type:'action', title:'💀 파산!', text:`${p.name}이(가) 파산했습니다` };
-        this.addLog(state, state.eventMsg);
+        }
+
+        // 매각 후에도 부족하면 파산
+        if (p.money < 0) {
+          p.bankrupt = true;
+          state.tiles.forEach(t => {
+            if (t.owner === p.id) {
+              t.owner = null; t.ownerName = ''; t.level = 0; t.doubled = false;
+            }
+          });
+          state.eventMsg = `💀 ${p.name} 파산!`;
+          state.popup = { type:'action', title:'💀 파산!', text:`${p.name}이(가) 파산했습니다` };
+          this.addLog(state, state.eventMsg);
+        }
       }
     });
     this.checkGameOver(state);
